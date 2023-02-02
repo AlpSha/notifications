@@ -71,9 +71,11 @@ public class NotificationsPlugin implements FlutterPlugin, EventChannel.StreamHa
           case "getPermissionState":
             boolean isGranted = permissionGranted();
             result.success(isGranted);
+            break;
           case "requestPermission":
             requestPermission();
             result.success(null);
+            break;
         }
       }
     });
