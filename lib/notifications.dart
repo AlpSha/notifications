@@ -75,7 +75,7 @@ class Notifications {
   }
 
   Future<bool> getIsPermissionGranted() async {
-    final response = await _permissionsMethodChannel.invokeMethod<bool>('getPermissionsState');
+    final response = await _permissionsMethodChannel.invokeMethod<bool>('getPermissionState');
     return response == true;
   }
 
