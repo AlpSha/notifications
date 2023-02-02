@@ -57,6 +57,8 @@ class Notifications {
   static const EventChannel _notificationEventChannel =
       EventChannel('notifications');
 
+  static const MethodChannel _permissionsMethodChannel = MethodChannel('notifications/permissions');
+
   Stream<NotificationEvent>? _notificationStream;
 
   Stream<NotificationEvent>? get notificationStream {
@@ -70,6 +72,15 @@ class Notifications {
     }
     throw NotificationException(
         'Notification API exclusively available on Android!');
+  }
+
+  Future<bool> getIsPermissionGranted() async {
+    final response = await _permissionsMethodChannel.invokeMethod<bool>('getPermissionsState');
+    return response == true;
+  }
+
+  Future<void> requestPermission() async {
+    await _permissionsMethodChannel.invokeMethod<void>('requestPermission');
   }
 }
 
