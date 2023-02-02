@@ -16,6 +16,8 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.EventChannel.EventSink;
+import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.MethodChannel;
 
 /**
  * NotificationsPlugin
@@ -24,6 +26,7 @@ public class NotificationsPlugin implements FlutterPlugin, EventChannel.StreamHa
 
   private static final String TAG = "NotificationsPlugin";
   private EventChannel eventChannel;
+  private MethodChannel permissionsMethodChannel;
   private Context context;
 
   public void requestPermission() {
@@ -60,6 +63,20 @@ public class NotificationsPlugin implements FlutterPlugin, EventChannel.StreamHa
     BinaryMessenger binaryMessenger = flutterPluginBinding.getBinaryMessenger();
     eventChannel = new EventChannel(binaryMessenger, "notifications");
     eventChannel.setStreamHandler(this);
+    permissionsMethodChannel = new MethodChannel(binaryMessenger, "notifications/permissions");
+    permissionsMethodChannel.setMethodCallHandler(new MethodChannel.MethodCallHandler() {
+      @Override
+      public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
+        switch(call.method) {
+          case "getPermissionState":
+            boolean isGranted = permissionGranted();
+            result.success(isGranted);
+          case "requestPermission":
+            requestPermission();
+            result.success(null);
+        }
+      }
+    });
 
     /// Get context
     context = flutterPluginBinding.getApplicationContext();
@@ -68,6 +85,8 @@ public class NotificationsPlugin implements FlutterPlugin, EventChannel.StreamHa
   @Override
   public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
     eventChannel.setStreamHandler(null);
+    permissionsMethodChannel.setMethodCallHandler(null);
+    permissionsMethodChannel = null;
   }
 
   @RequiresApi(api = VERSION_CODES.JELLY_BEAN_MR2)
@@ -88,7 +107,6 @@ public class NotificationsPlugin implements FlutterPlugin, EventChannel.StreamHa
       context.startService(listenerIntent);
       Log.i(TAG, "Started the notification tracking service.");
     } else {
-      requestPermission();
       Log.e(TAG, "Failed to start notification tracking; Permissions were not yet granted.");
     }
   }
